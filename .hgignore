@@ -1,2 +1,5 @@
 syntax: glob
 *.pro.user
+*.log
+syntax: regexp
+Documents/html/.*
