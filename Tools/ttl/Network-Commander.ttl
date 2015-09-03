@@ -1,0 +1,322 @@
+;================================================================
+; Filename    : Network-Commander.ttl
+; Description : 
+; Author      : FAE)Takahashi Noriaki
+; Created     : 2015/08/21
+; modified    : 2015/09/01
+;================================================================
+
+;================================================================
+;; メイン処理
+;================================================================
+;; 引数の処理と初期化
+statusbox "initialize" "status"
+setdlgpos 0 0
+CONNECTION      = param2
+DESTINATION     = param3
+USERNAME        = param4
+PASSWORD        = param5
+EXEC_CMD_FILE   = param6
+LOG_FILE        = param7
+LOG_APEND_FLAG  = param8
+
+;; タイムアウト無効化
+timeout = 0
+
+;; 接続先に指定の方法で接続
+strmatch CONNECTION 'Serial'
+if result then
+  call connectserial
+  goto connected
+endif
+strmatch CONNECTION 'SSH'
+if result then
+  call connectssh
+  goto connected
+endif
+strmatch CONNECTION 'Telnet'
+if result then
+  call connecttelnet
+  goto connected
+endif
+:connected
+
+;; ログ取得開始
+strmatch LOG_APEND_FLAG '[tT][rR][uU][eE]'
+if result then
+  logopen LOG_FILE 1 1
+else
+  logopen LOG_FILE 1 0
+endif
+
+;; コマンド実行
+call execute_command
+
+;; 接続先からの最後の応答がログに残るように待機
+pause 1
+
+;; ログ取得終了
+strmatch LOG_FILE '-'
+if !result then
+  logclose
+endif
+
+;; 接続を解除
+disconnect
+
+;; TeraTermのウィンドウを終了
+closett
+
+;; マクロを終了
+exit
+;================================================================
+
+:connectserial
+;================================================================
+;; シリアル接続
+;================================================================
+;; ボーレート設定
+BAUDRATE = '9600'
+COM_PORT = ''
+statusbox "Serial connection" "status"
+strmatch DESTINATION '\d-\d'
+if result then
+  str2int COM_PORT_MIN groupmatchstr1
+  str2int COM_PORT_MAX groupmatchstr2
+
+  ;; ①COMポートの状態を確認する
+  for PORT_NUM COM_PORT_MIN COM_PORT_MAX
+
+    ;; ②整数値を文字列に変換
+    int2str COM_PORT PORT_NUM
+
+    ;; ③コマンド組立て
+    call build_serial_connection_command
+
+    ;; ④接続
+    connect COMMAND
+
+    ;; ⑤接続確認
+    if result = 2 break
+  next
+else
+  strmatch DESTINATION '\d'
+  if result then
+    COM_PORT = DESTINATION
+    call build_serial_connection_command
+    connect COMMAND
+  endif
+endif
+call autologin
+return
+
+:build_serial_connection_command
+  COMMAND = '/C='
+  strconcat COMMAND COM_PORT
+  strconcat COMMAND ' /BAUD='
+  strconcat COMMAND BAUDRATE
+  strconcat COMMAND ' /X=0 /Y=70'
+return
+
+:autologin
+strmatch USERNAME '-'
+if !result then
+  sendln
+  waitregex '[lL]ogin:'
+  sendln USERNAME
+else
+  sendln
+endif
+strmatch PASSWORD '-'
+if !result then
+  waitregex '[pP]assword:'
+  sendln PASSWORD
+else
+  sendln
+endif
+call wait_prompt
+return
+
+:connectssh
+;================================================================
+;; SSHログイン操作
+;================================================================
+;; ユーザ名設定
+;; USERNAME = 'admin'
+;; パスワードファイル指定
+;; getdir PASSFILE
+;; strconcat PASSFILE '\password.dat'
+
+;; ①接続先ホスト情報入力
+;; inputbox 'Please input an IP address or the host name.' 'Host information input'
+;; HOSTADDR = inputstr
+HOSTADDR = DESTINATION
+
+;; ②入力確認(IPアドレス or ホスト名の入力が無い場合終了)
+strlen HOSTADDR
+if result = 0 then
+  messagebox 'Host information is not input.' 'Input error'
+  closett
+  end
+endif
+
+;; ③パスワード取得
+;; getpassword PASSFILE HOSTADDR PASSWORD
+;; getpassword PASSFILE USERNAME PASSWORD
+
+;; ④コマンド組立て
+COMMAND = HOSTADDR
+strconcat COMMAND ':22 /ssh /2 /auth=password /user='
+strconcat COMMAND USERNAME
+strconcat COMMAND ' /passwd='
+strconcat COMMAND PASSWORD
+
+;; ⑥接続
+connect COMMAND
+
+;; ⑦接続判定1（接続出来ない場合はメッセージを表示しマクロ終了）
+if result <> 2 then
+  messagebox 'It could not be connected.' 'Connection Error'
+  closett
+  end
+endif
+
+;; ⑧接続判定2（接続して10秒以内にプロンプトが表示されない場合もマクロ終了）
+timeout = 10
+call wait_prompt
+if result = 0 then
+  end
+endif
+timeout = 0
+return
+
+:connecttelnet
+;================================================================
+;; Telnetログイン操作
+;================================================================
+;; ①接続先ホスト情報入力
+HOSTADDR = DESTINATION
+
+;; ②入力確認(IPアドレス or ホスト名の入力が無い場合終了)
+strlen HOSTADDR
+if result = 0 then
+  messagebox 'Host information is not input.' 'Input error'
+  closett
+  end
+endif
+
+;; ③パスワード取得
+;; getpassword PASSFILE HOSTADDR PASSWORD
+;; getpassword PASSFILE USERNAME PASSWORD
+
+;; ④コマンド組立て
+COMMAND = HOSTADDR
+strconcat COMMAND ':23 /nossh /T=1'
+
+;; ⑥接続
+connect COMMAND
+
+;; ⑦接続判定1（接続出来ない場合はメッセージを表示しマクロ終了）
+if result <> 2 then
+  messagebox 'It could not be connected.' 'Connection Error'
+  closett
+  end
+endif
+
+call autologin
+
+return
+
+:execute_command
+;================================================================
+;; コマンド実行
+;================================================================
+; ファイルオープン (先頭から読み込み)
+fileopen execFH EXEC_CMD_FILE 0
+
+; 行数カウンタ初期化
+exec_line_cnt = 0
+excmd_flg = 0
+while 1
+  ; ファイルから1行読み込む
+  filereadln execFH EXEC_CMD
+   ; 最後の行まで読み込んでいたらループを抜ける
+   if result then
+    break
+  endif
+
+  call display_command
+
+  if excmd_flg then
+    strmatch EXEC_CMD '^.*<TTL_DISABLE>.*$'
+    if result then
+      excmd_flg = 0
+    else
+      strmatch EXEC_CMD '^.*<.*>.*$'
+      if result then
+        call exec_command
+      else
+        call send_command
+      endif
+    endif
+  else
+    strmatch EXEC_CMD '^.*<TTL_ENABLE>.*$'
+    if result then
+      excmd_flg = 1
+    else
+      call send_command
+    endif
+  endif
+
+endwhile
+; ファイルクローズ
+fileclose execFH
+return
+
+:send_command
+; コメントは削除してから送信する
+commentregex = ';.*$'
+strreplace EXEC_CMD 1 commentregex ''
+; コマンド送信
+sendln EXEC_CMD
+; プロンプト表示待ち
+call wait_prompt
+return
+
+:exec_command
+; '<'から'>'までの間以外を削除
+strreplace EXEC_CMD 1 '^.*<' ''
+strreplace EXEC_CMD 1 '>.*$' ''
+; コマンドをTTLとして実行
+execcmnd EXEC_CMD
+return
+
+:display_command
+; 実行中の行内容表示
+exec_line_cnt = exec_line_cnt + 1
+int2str line_str exec_line_cnt
+strconcat line_str ':'
+strconcat line_str EXEC_CMD
+title = 'status:'
+strconcat title EXEC_CMD_FILE
+statusbox line_str title
+return
+
+;================================================================
+;; プロンプト処理
+;================================================================
+; :get_prompt
+; ;; プロンプト記録
+; sendln
+; waitregex '([\w\-_ ]+)#'
+; PROMPT1 = groupmatchstr1
+; strconcat PROMPT1 '(\([\w\-\_ ]+\))?#'
+; sendln
+; return
+
+:wait_prompt
+;; プロンプト待機
+; waitregex PROMPT1
+; waitregex '([\w\-_ ]+)(\([\w\-\_ ]+\))?[#$]'
+wait '$' '#' '>'
+return
