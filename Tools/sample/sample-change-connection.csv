@@ -1,0 +1,8 @@
+program,macro,device,connectin,destination,username,password,commandFilename,logFileName,logAppendFlag,comment
+ttpmacro,./Network-Commander.ttl,,SSH,192.168.1.1,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,
+ttpmacro,./Network-Commander.ttl,,SSH,192.168.1.2,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,
+ttpmacro,./Network-Commander.ttl,,SSH,192.168.1.3,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,
+ttpmacro,./Network-Commander.ttl,,Telnet,192.168.1.4,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,
+ttpmacro,./Network-Commander.ttl,,Telnet,192.168.1.5,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,
+ttpmacro,./Network-Commander.ttl,,Telnet,192.168.1.6,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,
+ttpmacro,./Network-Commander.ttl,,Serial,3-100,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,True,

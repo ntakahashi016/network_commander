@@ -1,0 +1,10 @@
+program,macro,device,connectin,destination,username,password,commandFilename,logFileName,logAppendFlag,comment
+./Tools/bat/set_ip.bat,static,,192.168.1.100,255.255.255.0,192.168.1.1,,,,,PCのIPアドレスを変更する(固定)※管理者権限でNetwork-Commander.exeを実行していること
+./Tools/bat/ipconfig_pause.bat,,,,,,,,,,コマンドプロンプトのipconfigを実行し、ユーザーがキーを押すまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router1,SSH,192.168.1.1,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+./Tools/bat/set_ip.bat,static,,192.168.1.101,255.255.255.0,192.168.1.1,,,,,PCのIPアドレスを変更する(固定)※管理者権限でNetwork-Commander.exeを実行していること
+./Tools/bat/ipconfig_pause.bat,,,,,,,,,,コマンドプロンプトのipconfigを実行し、ユーザーがキーを押すまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router2,SSH,192.168.1.2,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+./Tools/bat/set_ip.bat,dhcp,,,,,,,,,PCのIPアドレスを変更する(DHCP)※管理者権限でNetwork-Commander.exeを実行していること
+./Tools/bat/ipconfig_pause.bat,,,,,,,,,,コマンドプロンプトのipconfigを実行し、ユーザーがキーを押すまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router3,SSH,192.168.1.3,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,

@@ -1,0 +1,41 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ログファイルにメッセージを書き込むサンプル
+;; ユーザー名、パスワードはNetwork-Commander.exeから受け取っている前提
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; TTL実行モードを有効化
+================<TTL_ENABLE>================
+
+; ログに書き込むメッセージを作成する
+; 現在日時を取得
+<gettime DATETIME "%Y/%m/%d.%H:%M:%S">
+; 行頭に改行コード
+<HEADER = #13#10>
+; メッセージ内容
+<strconcat HEADER '#####[log start at '>
+; 現在日時をメッセージに追加
+<strconcat HEADER DATETIME>
+; メッセージ
+<strconcat HEADER ']#####'>
+; 行末に改行コード
+<strconcat HEADER #13#10>
+; 日時をログファイルに書き込み
+<logwrite HEADER>
+
+; コマンド送信
+<sendln 'enable'>
+; パスワードの入力を求められるのを待機
+<wait 'Password:'>
+; パスワード送信
+<sendln PASSWORD>
+
+; プロンプト'$'or'#'or'>'のいずれかを受信するまで待機
+<wait '$' '#' '>'>
+
+; TTL実行モードを無効化
+================<TTL_DISABLE>================
+
+; 各行を送信(sendln '各行の文字列'と等価)
+terminal length 0
+show switch detail
+show ip route

@@ -1,0 +1,12 @@
+program,macro,device,connectin,destination,username,password,commandFilename,logFileName,logAppendFlag,comment
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router1,SSH,192.168.1.1,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+pause,,,,,,,,,,コマンドプロンプトのpauseを実行し、ユーザーがキーを押すまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router2,SSH,192.168.1.2,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+./Tools/bat/message_pause.bat,message,,,,,,,,,messageを表示して、ユーザーがキーを押すまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router3,SSH,192.168.1.3,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+./Tools/bat/ipconfig_pause.bat,,,,,,,,,,コマンドプロンプトのipconfigを実行し、ユーザーがキーを押すまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router4,Telnet,192.168.1.4,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+./Tools/bat/wait_ping_ok.bat,192.168.1.5,,5,,,,,,,指定したIPアドレスに対して指定した回数pingが連続で成功するまで待機する。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router5,Telnet,192.168.1.5,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
+./Tools/bat/wait_timeout.bat,10,,message,,,,,,,messageを表示して10秒待機する。messageは日本語非対応です。
+ttpmacro,./Tools/ttl/Network-Commander.ttl,router6,Telnet,192.168.1.6,admin,password,./Tools/sample/sample-logmessage.txt,./Tools/sample/sample-logmessage.log,TRUE,
